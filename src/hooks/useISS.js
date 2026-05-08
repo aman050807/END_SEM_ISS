@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { calculateSpeed } from '../utils/haversine';
 
-const ISS_API = 'https://api.wheretheiss.at/v1/satellites/25544';
+// Using a CORS proxy for ISS API to prevent issues in production
+const ISS_API = 'https://corsproxy.io/?https://api.wheretheiss.at/v1/satellites/25544';
 const ASTROS_API = 'https://corsproxy.io/?http://api.open-notify.org/astros.json';
 const GEO_API = 'https://nominatim.openstreetmap.org/reverse';
 const MAX_POSITIONS = 15;
@@ -24,7 +25,12 @@ export function useISS() {
     try {
       const res = await fetch(
         `${GEO_API}?lat=${lat}&lon=${lon}&format=json`,
-        { headers: { 'Accept-Language': 'en' } }
+        { 
+          headers: { 
+            'Accept-Language': 'en',
+            'User-Agent': 'ISS-Dashboard-App-Student-Project' // Required by Nominatim policy
+          } 
+        }
       );
       const data = await res.json();
       if (data.error) {
@@ -48,7 +54,7 @@ export function useISS() {
     } catch {
       // fallback
       try {
-        const res2 = await fetch('http://api.open-notify.org/astros.json');
+        const res2 = await fetch('https://corsproxy.io/?http://api.open-notify.org/astros.json');
         const data2 = await res2.json();
         setPeople(data2);
       } catch { /* ignore */ }
